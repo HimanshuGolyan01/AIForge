@@ -15,7 +15,7 @@ const openai = new OpenAI({
   baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
 });
 
-// -------------------- /template route -------------------
+
 app.post("/template", async (req: Request, res: Response) => {
   try {
     const prompt = req.body.prompt;
@@ -63,7 +63,7 @@ app.post("/template", async (req: Request, res: Response) => {
   }
 });
 
-// -------------------- /chat route --------------------
+
 app.post("/chat", async (req: Request, res: Response) => {
   try {
     const messages = req.body.messages;
