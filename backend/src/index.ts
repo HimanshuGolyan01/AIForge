@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import cors from "cors";
 import dotenv from "dotenv";
 import OpenAI from "openai";
 import { BASE_PROMPT, getSystemPrompt } from "./prompts";
@@ -8,17 +9,43 @@ import { basePrompt as reactBasePrompt } from "./defaults/react";
 dotenv.config();
 
 const app = express();
+
+// ---------------------
+// Body parser
+// ---------------------
 app.use(express.json());
 
+// ---------------------
+// CORS setup
+// ---------------------
+const corsOptions = {
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+// Handle preflight OPTIONS requests for all routes
+app.use(cors(corsOptions));
+
+
+// Apply CORS to all routes
+app.use(cors(corsOptions));
+
+// ---------------------
+// OpenAI setup
+// ---------------------
 const openai = new OpenAI({
   apiKey: process.env.GEMINI_API,
   baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
 });
 
-
+// ---------------------
+// /template route
+// ---------------------
 app.post("/template", async (req: Request, res: Response) => {
   try {
-    const prompt = req.body.prompt;
+    const { prompt } = req.body;
 
     const completion = await openai.chat.completions.create({
       model: "gemini-2.0-flash",
@@ -63,24 +90,21 @@ app.post("/template", async (req: Request, res: Response) => {
   }
 });
 
-
+// ---------------------
+// /chat route
+// ---------------------
 app.post("/chat", async (req: Request, res: Response) => {
   try {
-    const messages = req.body.messages;
+    const { messages } = req.body;
 
     const response = await openai.chat.completions.create({
       model: "gemini-2.0-flash",
-      messages: [
-        { role: "system", content: getSystemPrompt() },
-        ...messages,
-      ],
+      messages: [{ role: "system", content: getSystemPrompt() }, ...messages],
       max_tokens: 8000,
       temperature: 0.7,
     });
 
-    const answer =
-      response?.choices?.[0]?.message?.content?.trim() ?? "";
-
+    const answer = response?.choices?.[0]?.message?.content?.trim() ?? "";
     res.json({ response: answer });
   } catch (err: any) {
     console.error(err);
@@ -88,4 +112,9 @@ app.post("/chat", async (req: Request, res: Response) => {
   }
 });
 
-app.listen(3000, () => console.log("Server running on http://localhost:3000"));
+// ---------------------
+// Start server
+// ---------------------
+app.listen(3000, () => {
+  console.log("✅ Server running on http://localhost:3000");
+});
