@@ -30,9 +30,7 @@ export function Builder() {
   const [steps, setSteps] = useState<Step[]>([]);
   const [files, setFiles] = useState<FileItem[]>([]);
 
-  // ----------------------
-  // Update file structure based on steps
-  // ----------------------
+  // Update files based on steps
   useEffect(() => {
     let updatedFiles = [...files];
     let updateHappened = false;
@@ -73,9 +71,7 @@ export function Builder() {
     }
   }, [steps]);
 
-  // ----------------------
-  // Mount files into WebContainer
-  // ----------------------
+  // Mount files in WebContainer
   useEffect(() => {
     if (!webcontainer) return;
 
@@ -94,9 +90,7 @@ export function Builder() {
     webcontainer.mount(mountStructure(files));
   }, [files, webcontainer]);
 
-  // ----------------------
-  // Initialize template from backend
-  // ----------------------
+  // Initialize template
   const init = async () => {
     try {
       setLoading(true);
@@ -135,30 +129,37 @@ export function Builder() {
     init();
   }, []);
 
-  // ----------------------
-  // Render
-  // ----------------------
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
-      <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-100">Website Builder</h1>
-        <p className="text-sm text-gray-400 mt-1">Prompt: {prompt}</p>
+      {/* Header */}
+      <header className="bg-gradient-to-r from-blue-900 to-black px-6 py-4 shadow-md">
+        <h1 className="text-2xl font-bold text-white">AiForge</h1>
+        <p className="text-sm text-gray-200 mt-1 truncate">Prompt: {prompt}</p>
       </header>
 
+      {/* Main Grid */}
       <div className="flex-1 overflow-hidden">
-        <div className="h-full grid grid-cols-4 gap-6 p-6">
-          <div className="col-span-1 space-y-6 overflow-auto">
-            <div className="max-h-[75vh] overflow-scroll">
+        <div className="h-full grid grid-cols-12 gap-6 p-6">
+          
+          {/* Steps Panel */}
+          <div className="col-span-3 space-y-6 overflow-auto bg-gray-800 rounded-lg p-4 shadow-md">
+            <h2 className="text-lg font-semibold text-white mb-2">Steps</h2>
+            <div className="max-h-[70vh] overflow-y-auto">
               <StepsList steps={steps} currentStep={currentStep} onStepClick={setCurrentStep} />
             </div>
 
-            <div className='flex flex-col gap-2'>
+            <div className='mt-4'>
               {(loading || !templateSet) && <Loader />}
               {!(loading || !templateSet) && (
-                <div className='flex gap-2'>
-                  <textarea value={userPrompt} onChange={e => setUserPrompt(e.target.value)} className='p-2 w-full'></textarea>
+                <div className='flex flex-col gap-2'>
+                  <textarea
+                    value={userPrompt}
+                    onChange={e => setUserPrompt(e.target.value)}
+                    placeholder="Ask the assistant..."
+                    className='p-2 rounded-md w-full bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-purple-500'
+                  />
                   <button
-                    className='bg-purple-400 px-4'
+                    className='bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-md py-2 mt-1 transition-all'
                     onClick={async () => {
                       const newMessage = { role: "user" as const, content: userPrompt };
                       setLoading(true);
@@ -181,13 +182,16 @@ export function Builder() {
             </div>
           </div>
 
-          <div className="col-span-1">
+          {/* File Explorer */}
+          <div className="col-span-3 bg-gray-800 rounded-lg p-4 shadow-md">
+            <h2 className="text-lg font-semibold text-white mb-2">Files</h2>
             <FileExplorer files={files} onFileSelect={setSelectedFile} />
           </div>
 
-          <div className="col-span-2 bg-gray-900 rounded-lg shadow-lg p-4 h-[calc(100vh-8rem)]">
+          {/* Code / Preview Area */}
+          <div className="col-span-6 bg-gray-900 rounded-lg shadow-lg p-4 flex flex-col h-[calc(100vh-8rem)]">
             <TabView activeTab={activeTab} onTabChange={setActiveTab} />
-            <div className="h-[calc(100%-4rem)]">
+            <div className="flex-1 mt-2 overflow-auto">
               {activeTab === 'code' ? (
                 <CodeEditor file={selectedFile} />
               ) : (
@@ -195,6 +199,7 @@ export function Builder() {
               )}
             </div>
           </div>
+
         </div>
       </div>
     </div>
